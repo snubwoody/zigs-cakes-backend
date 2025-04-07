@@ -24,7 +24,13 @@ pub async fn update_flavor(
     State(state): State<AppState>,
     Path(id): Path<i32>,
     Json(payload): Json<UpdateFlavorPayload>,
-) {
+) -> crate::Result<()> {
+	sqlx::query("UPDATE cake_flavors SET name = $1 WHERE id = $2")
+		.bind(payload.name)
+		.bind(id)
+		.execute(state.pool())
+		.await?;
+	Ok(())
 }
 
 #[cfg(test)]
@@ -51,12 +57,12 @@ mod tests {
         };
         let id = Path(flavor.id);
 
-        update_flavor(state.clone(), id, Json(payload)).await;
+        update_flavor(state.clone(), id, Json(payload))
+			.await
+			.unwrap();
 
         let flavor = sqlx::query_as::<_, CakeFlavor>(
-            "
-			SELECT * FROM cake_flavors WHERE id = $1
-		",
+            "SELECT * FROM cake_flavors WHERE id = $1",
         )
         .bind(flavor.id)
         .fetch_one(state.pool())
