@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM cake_sizes WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "price",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 2,
+        "name": "currency_code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "inches",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "layers",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "label",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "f33df5a916deb1225401c95909250cdab15daf8f5841eda257c131da86bae6f5"
+}

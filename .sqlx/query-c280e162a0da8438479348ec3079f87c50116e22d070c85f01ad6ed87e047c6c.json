@@ -1,0 +1,124 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\tSELECT \n\t\t\tcake.id,\n\t\t\tcake.flavour_id,\n\t\t\tcake.size_id,\n\t\t\tcake.message,\n\t\t\tcake.message_type,\n\t\t\tcake.cart,\n\t\t\tcake.additional_instructions,\n\t\t\tcake.quantity,\n\n\t\t\tflavor.id as cake_flavor_id,\n\t\t\tflavor.name as flavor_name,\n\t\t\tflavor.price as flavor_price,\n\t\t\tflavor.currency_code as flavor_currency_code,\n\t\t\t\n\t\t\tsize.id as cake_size_id,\n\t\t\tsize.label as size_label,\n\t\t\tsize.inches as size_inches,\n\t\t\tsize.price as size_price,\n\t\t\tsize.layers as size_layers,\n\t\t\tsize.currency_code as size_currency_code\n\t\t\t\n\t\tFROM cakes cake\n\t\tJOIN cake_flavors flavor\n\t\tON flavor.id = cake.flavour_id\n\t\tJOIN cake_sizes size\n\t\tON size.id = cake.size_id\n\t\tWHERE cake.cart = $1\n\t\t",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "flavour_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "size_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "message",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "message_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "cart",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 6,
+        "name": "additional_instructions",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "quantity",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 8,
+        "name": "cake_flavor_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
+        "name": "flavor_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "flavor_price",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 11,
+        "name": "flavor_currency_code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 12,
+        "name": "cake_size_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 13,
+        "name": "size_label",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 14,
+        "name": "size_inches",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 15,
+        "name": "size_price",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 16,
+        "name": "size_layers",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 17,
+        "name": "size_currency_code",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "c280e162a0da8438479348ec3079f87c50116e22d070c85f01ad6ed87e047c6c"
+}

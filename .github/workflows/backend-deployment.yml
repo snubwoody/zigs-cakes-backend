@@ -1,0 +1,114 @@
+name: Backend deployment
+env: 
+  SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+  AR_REGION: africa-south1
+  CR_REGION: europe-west2
+
+on:
+  push:
+    tags: ["backend-v*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgres://postgres:db1234@localhost:5432/mydb
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache sqlx cli
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            ~/.cargo/.git
+            target/
+          key: ${{ runner.os }}-sqlx-cli-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install sqlx
+        run: |
+            if command -v sqlx >/dev/null 2>&1; then
+              echo "sqlx is already installed"
+              sqlx --version
+            else
+              cargo install sqlx-cli --no-default-features --features rustls,postgres,completions
+            fi
+
+      - name: Setup local database
+        run: |
+          cd backend
+          docker compose up db -d
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for database..."
+            sleep 5
+          done
+      - name: Run migrations
+        run: |
+          cd backend
+          sqlx database create
+          sqlx migrate run
+      
+      # Not sure if this works
+      - name: Cache deps
+        uses: actions/cache@v4
+        with: 
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run tests
+        run: |
+          cd backend
+          cargo test --no-fail-fast
+      - name: Build binary
+        run: | 
+          cd backend
+          cargo build
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+    
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate GCP
+        uses: google-github-actions/auth@v2
+        with: 
+          workload_identity_provider: ${{ vars.WIP }}
+          service_account: ${{ vars.SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          version: '>= 363.0.0' # Minimum supported version for Workload Identity Federation
+
+      - name: Build docker image
+        run: |
+          cd backend
+          docker compose build
+      
+      - name: Extract version
+        run: |
+          cd backend/server
+          cargo install cargo-get
+          echo "VERSION=$(cargo-get package.version)" >> "$GITHUB_ENV"
+      
+      - name: Deploy to artifact registry
+        run: |
+          gcloud auth configure-docker ${{ env.AR_REGION }}-docker.pkg.dev
+          docker tag server ${{ env.AR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/backend-server/server:$VERSION
+          docker push ${{ env.AR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/backend-server/server:$VERSION
+
+      - name: Deploy to cloud run
+        run: gcloud run deploy zigs-cakes-backend --image ${{ env.AR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/backend-server/server:$VERSION --region ${{ env.CR_REGION }}
+      

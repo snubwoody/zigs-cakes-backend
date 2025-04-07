@@ -1,0 +1,75 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\tINSERT INTO orders\n\t\t(pick_up,name,email,status,phone_number,cart)\n\t\tVALUES ($1,$2,$3,$4,$5,$6)\n\t\tRETURNING *\n\t\t",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "ordered_on",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "pick_up",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "email",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "status",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "phone_number",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "cart",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 8,
+        "name": "price",
+        "type_info": "Numeric"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "2566402202c1e4efb8ca7f9bd46d599ef5eba7dc0978548115c3839bcbb17d00"
+}

@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM cakes WHERE cart = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "flavour_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "size_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "message",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "message_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "additional_instructions",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "quantity",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "cart",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "74c76a181c4ccdd55ce669be18c9debdd796369780c160f9a48d44158a10f507"
+}

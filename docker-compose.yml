@@ -1,0 +1,21 @@
+services:
+  server:
+    image: server
+    build: 
+      context: .
+      args:
+        DATABASE_URL: ${DATABASE_URL}
+        SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+    # Run time env variables
+    environment:
+      - RUST_LOG=info
+      - PORT=3000
+    ports:
+      - 3000:3000
+  db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=db1234
+    ports:
+      - 5432:5432
