@@ -3,7 +3,7 @@ use rust_decimal::Decimal;
 use server_core::{
 	Error,
 	admin::{
-		create_flavor, create_size, delete_flavor, update_flavor, FlavorPayload, SizePayload
+		create_size, delete_flavor, update_flavor, FlavorPayload, SizePayload
 	}, db::{CakeFlavor, CakeSize}, AppState
 };
 

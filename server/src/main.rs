@@ -1,7 +1,7 @@
 use axum::{
     Json, Router,
     http::{HeaderName, HeaderValue, Method, header},
-    routing::{delete, get, patch, post},
+    routing::{delete, get, post},
 };
 use server_core::AppState;
 use server_core::api::{
@@ -9,7 +9,7 @@ use server_core::api::{
     v1::{cart::*, orders::*, *},
 };
 use server_core::admin::{self,*};
-use server_core::middleware::{auth_middleware, logging_middleware};
+use server_core::middleware::logging_middleware;
 pub use server_core::{Error, Result};
 use std::env;
 use tower::ServiceBuilder;

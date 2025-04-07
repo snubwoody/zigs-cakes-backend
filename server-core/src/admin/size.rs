@@ -1,4 +1,4 @@
-use crate::{db::{CakeFlavor, CakeSize}, AppState, ErrorResponse};
+use crate::{db::CakeSize, AppState, ErrorResponse};
 use axum::{
     extract::{Path, State}, http::StatusCode, Json
 };
