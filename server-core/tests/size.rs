@@ -1,37 +1,40 @@
 use axum::{extract::{Json, Path, State}, http::StatusCode};
+use rust_decimal::Decimal;
 use server_core::{
+	Error,
 	admin::{
-		create_flavor, delete_flavor, update_flavor, FlavorPayload
-	}, db::CakeFlavor, AppState
+		create_flavor, create_size, delete_flavor, update_flavor, FlavorPayload, SizePayload
+	}, db::{CakeFlavor, CakeSize}, AppState
 };
 
 #[sqlx::test(migrations = "../migrations")]
-fn create_cake_flavor(pool: sqlx::PgPool) {
-	let app_state = AppState::with_pool(pool).await.unwrap();
+fn create_cake_size(pool: sqlx::PgPool) -> Result<(),Error> {
+	let app_state = AppState::with_pool(pool).await?;
 	let state = State(app_state);
 
-	let payload = FlavorPayload {
-		name: "Red velvet".to_string(),
+	let payload = SizePayload {
+		inches: 23,
+		layers: 5,
+		price: Decimal::new(500, 2)
 	};
  
 	let (
 		status,
-		Json(new_flavor)
-	) = create_flavor(state.clone(), Json(payload))
-		.await
-		.unwrap();
+		Json(new_size)
+	) = create_size(state.clone(), Json(payload))
+		.await?;
 
 	assert_eq!(status,StatusCode::CREATED);
 
-	let flavor = sqlx::query_as::<_, CakeFlavor>(
-		"SELECT * FROM cake_flavors WHERE id = $1",
+	let size = sqlx::query_as::<_, CakeSize>(
+		"SELECT * FROM cake_sizes WHERE id = $1",
 	)
-	.bind(new_flavor.id)
+	.bind(new_size.id)
 	.fetch_one(state.pool())
-	.await
-	.unwrap();
+	.await?;
 
-	assert_eq!(flavor, new_flavor);
+	assert_eq!(size, new_size);
+	Ok(())
 }
 
 #[sqlx::test(migrations = "../migrations")]
