@@ -1,8 +1,8 @@
 use crate::ErrorResponse;
-use crate::db::{Cake, CakeRow, OrderRow};
-use crate::{AppState, Error};
+use crate::db::OrderRow;
+use crate::AppState;
 use axum::Json;
-use axum::extract::{Path, Query, State};
+use axum::extract::State;
 use axum::http::StatusCode;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

@@ -2,7 +2,7 @@ use crate::AppState;
 use crate::api::HttpExt;
 use axum::{
     Json,
-    extract::{Path, Query, State},
+    extract::{Path, State},
     http::{HeaderMap, StatusCode},
 };
 use serde::{Deserialize, Serialize};

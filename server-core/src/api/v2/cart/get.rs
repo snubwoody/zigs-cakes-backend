@@ -6,7 +6,7 @@ use crate::{
 use axum::extract::Path;
 use axum::{
     Json,
-    extract::{Query, State},
+    extract::State,
     http::{HeaderMap, StatusCode},
 };
 use rust_decimal::Decimal;

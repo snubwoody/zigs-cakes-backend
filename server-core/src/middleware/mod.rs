@@ -7,7 +7,6 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use serde_json::json;
 use std::time::Instant;
 
 /// Logs useful information about each request.

@@ -21,7 +21,7 @@ async fn create_test_user(
     let claims = Claims::default();
 
     sqlx::query("INSERT INTO profiles(id) VALUES($1)")
-        .bind(&claims.sub)
+        .bind(claims.sub)
         .execute(pool)
         .await?;
 
@@ -33,7 +33,7 @@ async fn create_test_user(
 
 #[cfg(test)]
 mod tests {
-    use crate::{AppState, create_test_user, secrets::SecretManager};
+    use crate::{AppState, create_test_user};
 
     #[sqlx::test(migrations = "../migrations")]
     fn add_dummy_user(pool: sqlx::PgPool) {
