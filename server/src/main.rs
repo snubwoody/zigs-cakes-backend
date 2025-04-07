@@ -23,7 +23,7 @@ use utoipa_swagger_ui::SwaggerUi;
     api::v2::get_cart_items,
     api::v2::add_to_cart,
     api::v2::submit_order,
-	api::v2::remove_from_cart
+    api::v2::remove_from_cart
 ))]
 struct ApiDoc;
 

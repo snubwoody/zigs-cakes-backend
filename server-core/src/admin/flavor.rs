@@ -1,11 +1,14 @@
-use axum::{extract::{Path, State}, Json};
+use crate::{AppState, ErrorResponse};
+use axum::{
+    Json,
+    extract::{Path, State},
+};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
-use crate::{AppState, ErrorResponse};
 
-#[derive(Serialize,Deserialize,ToSchema)]
-pub struct UpdateFlavorPayload{
-	pub name: String
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct UpdateFlavorPayload {
+    pub name: String,
 }
 
 #[utoipa::path(
@@ -18,49 +21,48 @@ pub struct UpdateFlavorPayload{
 )]
 /// Update a flavour
 pub async fn update_flavor(
-	State(state):State<AppState>,
-	Path(id):Path<i32>,
-	Json(payload):Json<UpdateFlavorPayload>
-){
-
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    Json(payload): Json<UpdateFlavorPayload>,
+) {
 }
 
 #[cfg(test)]
-mod tests{
-	use super::*;
+mod tests {
+    use super::*;
     use axum::extract::{Path, State};
 
-    use crate::{db::CakeFlavor, AppState};
+    use crate::{AppState, db::CakeFlavor};
 
+    #[sqlx::test(migrations = "../migrations")]
+    fn update_cake_flavor(pool: sqlx::PgPool) {
+        let app_state = AppState::with_pool(pool).await.unwrap();
+        let state = State(app_state);
 
-	#[sqlx::test(migrations="../migrations")]
-	fn update_cake_flavor(pool: sqlx::PgPool){
-		let app_state = AppState::with_pool(pool)
-			.await
-			.unwrap();
-		let state = State(app_state);
-		
-		let flavor = sqlx::query_as::<_,CakeFlavor>(
-			"INSERT INTO cake_flavors(name,price) VALUES('Vanilla',500) RETURNING *"
-		)
-		.fetch_one(state.pool())
-		.await
-		.unwrap();
+        let flavor = sqlx::query_as::<_, CakeFlavor>(
+            "INSERT INTO cake_flavors(name,price) VALUES('Vanilla',500) RETURNING *",
+        )
+        .fetch_one(state.pool())
+        .await
+        .unwrap();
 
-		let payload = UpdateFlavorPayload{name:"Red velvet".to_string()};
-		let id = Path(flavor.id);
+        let payload = UpdateFlavorPayload {
+            name: "Red velvet".to_string(),
+        };
+        let id = Path(flavor.id);
 
-		update_flavor(state.clone(), id, Json(payload)).await;
+        update_flavor(state.clone(), id, Json(payload)).await;
 
-		let flavor = sqlx::query_as::<_,CakeFlavor>("
+        let flavor = sqlx::query_as::<_, CakeFlavor>(
+            "
 			SELECT * FROM cake_flavors WHERE id = $1
-		")
-		.bind(flavor.id)
-		.fetch_one(state.pool())
-		.await
-		.unwrap();
+		",
+        )
+        .bind(flavor.id)
+        .fetch_one(state.pool())
+        .await
+        .unwrap();
 
-		assert_eq!(flavor.name,"Red velvet")
-
-	}
+        assert_eq!(flavor.name, "Red velvet")
+    }
 }

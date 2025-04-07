@@ -18,7 +18,7 @@ pub async fn remove_from_cart(
     Path((cart_id, item_id)): Path<(Uuid, i32)>,
     State(state): State<AppState>,
 ) -> crate::Result<StatusCode> {
-	// TODO check if the user has access to this cart
+    // TODO check if the user has access to this cart
     sqlx::query!("DELETE FROM cakes WHERE id = $1", item_id)
         .execute(state.pool())
         .await?;

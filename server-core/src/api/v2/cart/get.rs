@@ -147,7 +147,10 @@ pub async fn get_cart_items(
 mod tests {
     use super::*;
     use crate::{AppState, create_test_user};
-    use axum::{extract::{Path, State}, http::HeaderValue};
+    use axum::{
+        extract::{Path, State},
+        http::HeaderValue,
+    };
 
     #[sqlx::test(migrations = "../migrations")]
     async fn init_cart(pool: sqlx::PgPool) {
