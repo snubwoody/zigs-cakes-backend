@@ -1,11 +1,17 @@
 # Changelog
 
+## 0.7.0
+
+### Added
+Added some new endpoints
+- `PATCH /admin/cakes/flavor/{id}`
+- `DELETE /admin/cakes/flavor/{id}`
+
 ## 0.6.1
 
 ### Fixed
 
 - Added `DELETE /cart/{cart_id}/item/item_id` to the api docs
-  
   
 ## 0.6.0
 
