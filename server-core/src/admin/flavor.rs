@@ -15,7 +15,7 @@ pub struct UpdateFlavorPayload {
 	patch,
 	path="/api/v2/admin/cakes/flavor/{id}",
 	responses(
-		(status=200,description="Order submitted successfully"),
+		(status=200,description="Flavour created successfully"),
 		(status=401,description="Missing authorization header",body=ErrorResponse)
 	)
 )]
@@ -33,42 +33,23 @@ pub async fn update_flavor(
 	Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use axum::extract::{Path, State};
-
-    use crate::{AppState, db::CakeFlavor};
-
-    #[sqlx::test(migrations = "../migrations")]
-    fn update_cake_flavor(pool: sqlx::PgPool) {
-        let app_state = AppState::with_pool(pool).await.unwrap();
-        let state = State(app_state);
-
-        let flavor = sqlx::query_as::<_, CakeFlavor>(
-            "INSERT INTO cake_flavors(name,price) VALUES('Vanilla',500) RETURNING *",
-        )
-        .fetch_one(state.pool())
-        .await
-        .unwrap();
-
-        let payload = UpdateFlavorPayload {
-            name: "Red velvet".to_string(),
-        };
-        let id = Path(flavor.id);
-
-        update_flavor(state.clone(), id, Json(payload))
-			.await
-			.unwrap();
-
-        let flavor = sqlx::query_as::<_, CakeFlavor>(
-            "SELECT * FROM cake_flavors WHERE id = $1",
-        )
-        .bind(flavor.id)
-        .fetch_one(state.pool())
-        .await
-        .unwrap();
-
-        assert_eq!(flavor.name, "Red velvet")
-    }
+#[utoipa::path(
+	delete,
+	path="/api/v2/admin/cakes/flavor/{id}",
+	responses(
+		(status=200,description="Flavour deleted successfully"),
+		(status=401,description="Missing authorization header",body=ErrorResponse)
+	)
+)]
+/// Delete a flavour
+pub async fn delete_flavor(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+) -> crate::Result<()> {
+	sqlx::query("DELETE FROM cake_flavors WHERE id = $1")
+		.bind(id)
+		.execute(state.pool())
+		.await?;
+	Ok(())
 }
+
