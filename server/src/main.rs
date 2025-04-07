@@ -86,25 +86,15 @@ fn cors() -> CorsLayer {
 
 async fn server() -> crate::Result<()> {
     let port = env::var("PORT").ok().unwrap_or(String::from("3000"));
-
     let state = AppState::new().await?;
-
-    let ui = SwaggerUi::new("/docs").url("/api-docs/open-api.json", ApiDoc::openapi());
+    let ui = SwaggerUi::new("/docs")
+		.url("/api-docs/open-api.json", ApiDoc::openapi());
 
     let middleware = ServiceBuilder::new()
         .layer(cors())
         .layer(axum::middleware::from_fn(logging_middleware));
 
-    let admin_api = Router::new()
-        .route("/orders", get(get_orders))
-        .route("/order/{id}", get(fetch_order))
-        .route("/order/{id}/status/{status}", patch(update_order_status))
-        .route("/cart/{id}/items", get(fetch_cakes))
-		.route("/cakes/flavor/{id}", patch(update_flavor))
-        .layer(axum::middleware::from_fn_with_state(
-            state.clone(),
-            auth_middleware,
-        ));
+	let admin_api = admin_api(state.clone());
 
     let public_api = Router::new()
         .route("/cakes/flavors", get(get_cake_flavors))
@@ -136,11 +126,8 @@ async fn server() -> crate::Result<()> {
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await?;
-
     let socket = listener.local_addr()?;
-
     log::info!("Starting server on: {socket}");
-
     axum::serve(listener, app).await?;
 
     Ok(())
