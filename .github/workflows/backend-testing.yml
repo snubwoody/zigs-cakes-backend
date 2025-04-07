@@ -9,6 +9,17 @@ on:
     branches: ["main"]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Format
+      run: cargo fmt --all --check
+  
+    - name: Clippy
+      run: cargo clippy -- -D warning
+  
   test-and-build:
     runs-on: ubuntu-latest
     env:
@@ -38,7 +49,6 @@ jobs:
 
       - name: Setup local database
         run: |
-          cd backend
           docker compose up db -d
           until pg_isready -h localhost -p 5432 -U postgres; do
             echo "Waiting for database..."
@@ -47,7 +57,6 @@ jobs:
 
       - name: Run migrations
         run: |
-          cd backend
           sqlx database create
           sqlx migrate run
       
@@ -63,20 +72,15 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Run tests
-        run: |
-          cd backend
-          cargo test --no-fail-fast
+        run: cargo test --no-fail-fast
+      
       - name: Build crates
-        run: | 
-          cd backend
-          cargo build
+        run: cargo build
           
   build-docker:
     runs-on: ubuntu-latest
-    
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
     steps:
       - uses: actions/checkout@v4
 
