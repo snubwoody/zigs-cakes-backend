@@ -13,7 +13,7 @@ pub struct UpdateFlavorPayload {
 
 #[utoipa::path(
 	patch,
-	path="/api/v2/admin/flavor/{id}",
+	path="/api/v2/admin/cakes/flavor/{id}",
 	responses(
 		(status=200,description="Order submitted successfully"),
 		(status=401,description="Missing authorization header",body=ErrorResponse)

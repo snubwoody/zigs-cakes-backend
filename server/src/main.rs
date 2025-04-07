@@ -8,6 +8,7 @@ use server_core::api::{
     self,
     v1::{cart::*, orders::*, *},
 };
+use server_core::admin::{self,*};
 use server_core::middleware::{auth_middleware, logging_middleware};
 pub use server_core::{Error, Result};
 use std::env;
@@ -23,7 +24,8 @@ use utoipa_swagger_ui::SwaggerUi;
     api::v2::get_cart_items,
     api::v2::add_to_cart,
     api::v2::submit_order,
-    api::v2::remove_from_cart
+    api::v2::remove_from_cart,
+	admin::update_flavor,
 ))]
 struct ApiDoc;
 
@@ -98,6 +100,7 @@ async fn server() -> crate::Result<()> {
         .route("/order/{id}", get(fetch_order))
         .route("/order/{id}/status/{status}", patch(update_order_status))
         .route("/cart/{id}/items", get(fetch_cakes))
+		.route("/cakes/flavor/{id}", patch(update_flavor))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             auth_middleware,
