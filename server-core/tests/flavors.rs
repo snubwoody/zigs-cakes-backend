@@ -1,13 +1,38 @@
-use axum::extract::{Path, State,Json};
+use axum::{extract::{Json, Path, State}, http::StatusCode};
 use server_core::{
-	AppState, 
-	db::CakeFlavor,
 	admin::{
-		UpdateFlavorPayload,
-		update_flavor,
-		delete_flavor
-	}
+		create_flavor, delete_flavor, update_flavor, FlavorPayload
+	}, db::CakeFlavor, AppState
 };
+
+#[sqlx::test(migrations = "../migrations")]
+fn create_cake_flavor(pool: sqlx::PgPool) {
+	let app_state = AppState::with_pool(pool).await.unwrap();
+	let state = State(app_state);
+
+	let payload = FlavorPayload {
+		name: "Red velvet".to_string(),
+	};
+
+	let (
+		status,
+		Json(new_flavor)
+	) = create_flavor(state.clone(), Json(payload))
+		.await
+		.unwrap();
+
+	assert_eq!(status,StatusCode::CREATED);
+
+	let flavor = sqlx::query_as::<_, CakeFlavor>(
+		"SELECT * FROM cake_flavors WHERE id = $1",
+	)
+	.bind(new_flavor.id)
+	.fetch_one(state.pool())
+	.await
+	.unwrap();
+
+	assert_eq!(flavor, new_flavor);
+}
 
 #[sqlx::test(migrations = "../migrations")]
 fn update_cake_flavor(pool: sqlx::PgPool) {
@@ -21,7 +46,7 @@ fn update_cake_flavor(pool: sqlx::PgPool) {
 	.await
 	.unwrap();
 
-	let payload = UpdateFlavorPayload {
+	let payload = FlavorPayload {
 		name: "Red velvet".to_string(),
 	};
 	let id = Path(flavor.id);

@@ -1,14 +1,39 @@
-use crate::{AppState, ErrorResponse};
+use crate::{db::CakeFlavor, AppState, ErrorResponse};
 use axum::{
-    Json,
-    extract::{Path, State},
+    extract::{Path, State}, http::StatusCode, Json
 };
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
+/// The payload used when creating or updating a flavour
 #[derive(Serialize, Deserialize, ToSchema)]
-pub struct UpdateFlavorPayload {
+pub struct FlavorPayload {
     pub name: String,
+}
+
+
+#[utoipa::path(
+	post,
+	path="/api/v2/admin/cakes/flavor",
+	responses(
+		(status=201,description="Flavour created successfully",body=CakeFlavor),
+		(status=401,description="Missing authorization header",body=ErrorResponse)
+	)
+)]
+/// Create a new flavour
+pub async fn create_flavor(
+    State(state): State<AppState>,
+    Json(payload): Json<FlavorPayload>,
+) -> crate::Result<(StatusCode,Json<CakeFlavor>)> {
+	let flavor = sqlx::query_as::<_,CakeFlavor>("INSERT INTO cake_flavors(name) VALUES($1) RETURNING *")
+		.bind(payload.name)
+		.fetch_one(state.pool())
+		.await?;
+
+	Ok((
+		StatusCode::CREATED,
+		Json(flavor)
+	))
 }
 
 #[utoipa::path(
@@ -23,7 +48,7 @@ pub struct UpdateFlavorPayload {
 pub async fn update_flavor(
     State(state): State<AppState>,
     Path(id): Path<i32>,
-    Json(payload): Json<UpdateFlavorPayload>,
+    Json(payload): Json<FlavorPayload>,
 ) -> crate::Result<()> {
 	sqlx::query("UPDATE cake_flavors SET name = $1 WHERE id = $2")
 		.bind(payload.name)
