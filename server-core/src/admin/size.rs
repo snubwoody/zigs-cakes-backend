@@ -93,16 +93,13 @@ pub async fn update_size(
 		(status=401,description="Missing authorization header",body=ErrorResponse)
 	)
 )]
-/// Delete a size
+/// Delete a [`CakeSize`]
 pub async fn delete_size(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> crate::Result<()> {
-	sqlx::query("DELETE FROM cake_sizes WHERE id = $1")
-		.bind(id)
-		.execute(state.pool())
-		.await?;
-	Ok(())
+	let sizes = SizeService::new(state.clone());
+	sizes.delete(id).await
 }
 
 #[cfg(test)]

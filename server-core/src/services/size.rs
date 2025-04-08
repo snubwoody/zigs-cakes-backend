@@ -40,4 +40,18 @@ impl SizeService{
 	
 		Ok(size)
 	}
+
+	/// Delete a [`CakeSize`]
+	pub async fn delete(&self,id:i32) -> Result<()>{
+		let pool = self.state.pool();
+
+		sqlx::query("DELETE FROM cake_sizes WHERE id = $1")
+			.bind(id)
+			.execute(pool)
+			.await?;
+
+		Ok(())
+	}
+
+
 }
