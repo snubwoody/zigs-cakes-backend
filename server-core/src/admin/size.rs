@@ -19,7 +19,7 @@ pub struct SizePayload {
 	post,
 	path="/api/v2/admin/cakes/size",
 	responses(
-		(status=201,description="Flavour created successfully",body=CakeSize),
+		(status=201,description="Cake size created successfully",body=CakeSize),
 		(status=401,description="Missing authorization header",body=ErrorResponse)
 	)
 )]
@@ -49,7 +49,7 @@ pub async fn create_size(
 
 #[utoipa::path(
 	patch,
-	path="/api/v2/admin/cakes/flavor/{id}",
+	path="/api/v2/admin/cakes/size/{id}",
 	responses(
 		(status=200,description="Flavour created successfully"),
 		(status=401,description="Missing authorization header",body=ErrorResponse)
@@ -81,7 +81,7 @@ pub async fn delete_size(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> crate::Result<()> {
-	sqlx::query("DELETE FROM cake_flavors WHERE id = $1")
+	sqlx::query("DELETE FROM cake_sizes WHERE id = $1")
 		.bind(id)
 		.execute(state.pool())
 		.await?;
