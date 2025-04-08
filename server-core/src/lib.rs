@@ -1,6 +1,7 @@
 mod state;
 mod auth;
 mod error;
+mod services;
 pub mod api;
 pub mod db;
 pub mod admin;

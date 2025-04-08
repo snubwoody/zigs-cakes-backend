@@ -1,4 +1,4 @@
-use crate::{db::CakeSize, AppState, ErrorResponse};
+use crate::{db::CakeSize, services::size::SizeService, AppState, ErrorResponse};
 use axum::{
     extract::{Path, State}, http::StatusCode, Json
 };
@@ -54,19 +54,10 @@ pub async fn create_size(
     State(state): State<AppState>,
     Json(payload): Json<CreateSizePayload>,
 ) -> crate::Result<(StatusCode,Json<CakeSize>)> {
-	let size = sqlx::query_as::<_,CakeSize>(
-		"
-		INSERT INTO cake_sizes(inches,layers,price,label) 
-		VALUES($1,$2,$3,'TODO: Remove column') 
-		RETURNING *
-		"
-	)
-	.bind(payload.inches)
-	.bind(payload.layers)
-	.bind(payload.price)
-	.fetch_one(state.pool())
-	.await?;
-
+	let sizes = SizeService::new(state.clone());
+	let CreateSizePayload { inches, layers, price } = payload;
+	let size = sizes.create(inches, layers, price).await?;
+	
 	Ok((
 		StatusCode::CREATED,
 		Json(size)
