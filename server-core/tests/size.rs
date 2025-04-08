@@ -2,7 +2,7 @@ use axum::{extract::{Json, Path, State}, http::StatusCode};
 use rust_decimal::Decimal;
 use server_core::{
 	admin::{
-		create_size, delete_flavor, delete_size, update_flavor, FlavorPayload, SizePayload
+		create_size, delete_flavor, delete_size, update_flavor, FlavorPayload, CreateSizePayload
 	}, db::{CakeFlavor, CakeSize}, AppState, Error
 };
 
@@ -11,7 +11,7 @@ fn create_cake_size(pool: sqlx::PgPool) -> Result<(),Error> {
 	let app_state = AppState::with_pool(pool).await?;
 	let state = State(app_state);
 
-	let payload = SizePayload {
+	let payload = CreateSizePayload {
 		inches: 23,
 		layers: 5,
 		price: Decimal::new(500, 2)
@@ -73,7 +73,7 @@ fn delete_cake_size(pool: sqlx::PgPool) -> Result<(),Error> {
 	let app_state = AppState::with_pool(pool).await?;
 	let state = State(app_state);
 
-	let payload = SizePayload {
+	let payload = CreateSizePayload {
 		inches: 23,
 		layers: 5,
 		price: Decimal::new(500, 2)
