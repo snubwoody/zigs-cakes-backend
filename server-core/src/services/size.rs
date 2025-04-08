@@ -7,6 +7,19 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use crate::Result;
 
+
+/// Describes the details when updating a size.
+/// 
+/// Only fields that are not left out will be updated, the rest will
+/// be kept as is.
+#[derive(Serialize,Deserialize,ToSchema,Default)]
+#[serde(default)]
+pub struct UpdateSizeDesc{
+	pub inches: Option<i32>,
+	pub layers: Option<i32>,
+	pub price: Option<Decimal>
+}
+
 pub struct SizeService{
 	state: AppState
 }
@@ -14,6 +27,18 @@ pub struct SizeService{
 impl SizeService{
 	pub fn new(state:AppState) -> Self{
 		Self { state }
+	}
+
+	pub async fn get(&self,id:i32) -> Result<Option<CakeSize>>{
+		let pool = self.state.pool();
+		let size:Option<CakeSize> = sqlx::query_as(
+			"SELECT * FROM cake_sizes WHERE id=$1"
+		)
+		.bind(id)
+		.fetch_optional(pool)
+		.await?;
+
+		Ok(size)
 	}
 
 	/// Create a new [`CakeSize`]
@@ -41,6 +66,16 @@ impl SizeService{
 		Ok(size)
 	}
 
+	/// Update a [`CakeSize`]
+	pub async fn update(
+		&self,
+		id:i32,
+		desc:UpdateSizeDesc
+	){
+		
+
+	}
+
 	/// Delete a [`CakeSize`]
 	pub async fn delete(&self,id:i32) -> Result<()>{
 		let pool = self.state.pool();
@@ -54,4 +89,20 @@ impl SizeService{
 	}
 
 
+}
+
+#[cfg(test)]
+mod tests{
+	use super::*;
+
+	#[sqlx::test(migrations="../migrations")]
+	async fn get_cake_size(pool: sqlx::PgPool) -> Result<()>{
+		let state = AppState::with_pool(pool).await?;
+		let sizes = SizeService::new(state);
+		let new_size = sizes.create(10, 10, Decimal::new(350, 2)).await?;
+		let size = sizes.get(new_size.id).await?.unwrap();
+
+		assert_eq!(new_size,size);
+		Ok(())
+	}
 }

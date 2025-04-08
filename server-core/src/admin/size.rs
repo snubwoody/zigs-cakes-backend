@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 
-/// The payload used when creating or updating a size
+/// The payload used when creating a size
 #[derive(Serialize, Deserialize, ToSchema)]
 pub struct CreateSizePayload {
     pub inches: i32,
