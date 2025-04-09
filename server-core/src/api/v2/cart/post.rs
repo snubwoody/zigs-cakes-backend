@@ -38,15 +38,8 @@ pub struct AddToCartPayload {
 pub async fn add_to_cart(
     Path(cart_id): Path<Uuid>,
     State(state): State<AppState>,
-    headers: HeaderMap,
     Json(payload): Json<AddToCartPayload>,
 ) -> crate::Result<StatusCode> {
-    // TODO handle auth
-    let jwt_secret = state.jwt_secret();
-
-    let claims = headers.get_jwt(jwt_secret)?;
-    let user_id = claims.sub;
-
     sqlx::query(
         "INSERT INTO cakes(
 			flavour_id,
@@ -126,7 +119,7 @@ mod tests {
             .await
             .unwrap();
 
-        let status = add_to_cart(Path(cart_id), state.clone(), headers, Json(payload))
+        let status = add_to_cart(Path(cart_id), state.clone(),Json(payload))
             .await
             .unwrap();
 
