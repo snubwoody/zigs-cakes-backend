@@ -1,6 +1,7 @@
 name: Backend testing
 env:
   SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+  DATABASE_URL: postgres://postgres:db1234@localhost:5432/mydb?sslmode=disable
   
 on:
   pull_request:
@@ -9,14 +10,53 @@ on:
     branches: ["main"]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Cache dependencies
+      id: cache-deps
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin
+          ~/.cargo/registry
+          ~/.cargo/.git
+          target/
+        key: ${{ runner.os }}-cargo-deps-${{ hashFiles('**/Cargo.lock') }}
+
+    - if: ${{steps.cache-deps.outputs.cache-hit != 'true'}}
+      name: Install sqlx
+      run: cargo install sqlx-cli --no-default-features --features rustls,postgres,completions
+
+    - name: 📖 Setup local database
+      run: |
+        docker compose up db -d
+        until pg_isready -h localhost -p 5432 -U postgres; do
+          echo "Waiting for database..."
+          sleep 5
+        done
+
+    - name: Create database
+      run: |
+        sqlx database create
+        sqlx migrate run
+
+    - name: ✒️ Format
+      run: cargo fmt --all --check
+  
+    - name: 👀 Clippy
+      run: cargo clippy -- -D warnings
+  
   test-and-build:
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: postgres://postgres:db1234@localhost:5432/mydb?sslmode=disable
+      
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache sqlx cli
+      - name: Cache dependencies
+        id: cache-deps
         uses: actions/cache@v4
         with:
           path: |
@@ -24,66 +64,40 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/.git
             target/
-          key: ${{ runner.os }}-sqlx-cli-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-deps-${{ hashFiles('**/Cargo.lock') }}
 
-      # Install SQLx only if missing
-      - name: Install sqlx
-        run: |
-            if command -v sqlx >/dev/null 2>&1; then
-              echo "sqlx is already installed"
-            sqlx --version
-            else
-              cargo install sqlx-cli --no-default-features --features rustls,postgres,completions
-            fi
+      - if: ${{steps.cache-deps.outputs.cache-hit != 'true'}}
+        name: Install sqlx
+        run: cargo install sqlx-cli --no-default-features --features rustls,postgres,completions
 
       - name: Setup local database
         run: |
-          cd backend
           docker compose up db -d
           until pg_isready -h localhost -p 5432 -U postgres; do
             echo "Waiting for database..."
             sleep 5
           done
 
-      - name: Run migrations
+      - name: Create local database
         run: |
-          cd backend
           sqlx database create
           sqlx migrate run
-      
-      # Not sure if this works
-      - name: Cache deps
-        uses: actions/cache@v4
-        with: 
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            ~/.cargo/bin
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
+    
       - name: Run tests
-        run: |
-          cd backend
-          cargo test --no-fail-fast
+        run: cargo test --no-fail-fast
+      
       - name: Build crates
-        run: | 
-          cd backend
-          cargo build
+        run: cargo build
           
   build-docker:
     runs-on: ubuntu-latest
-    
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Build docker image
-        run: |
-          cd backend
-          docker compose build
+        run: docker compose build
       
       
       

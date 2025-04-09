@@ -14,7 +14,7 @@ pub struct DeleteQuery {
 pub async fn remove_from_cart(
     State(state): State<AppState>,
     Query(query): Query<DeleteQuery>,
-    cookies: CookieJar,
+    _cookies: CookieJar,
 ) -> crate::Result<StatusCode> {
     sqlx::query!("DELETE FROM cakes WHERE id = $1", query.id)
         .execute(state.pool())

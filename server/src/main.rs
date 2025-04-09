@@ -1,14 +1,15 @@
 use axum::{
     Json, Router,
     http::{HeaderName, HeaderValue, Method, header},
-    routing::{delete, get, patch, post},
+    routing::{delete, get, post},
 };
 use server_core::AppState;
+use server_core::admin::{self, *};
 use server_core::api::{
     self,
     v1::{cart::*, orders::*, *},
 };
-use server_core::middleware::{auth_middleware, logging_middleware};
+use server_core::middleware::logging_middleware;
 pub use server_core::{Error, Result};
 use std::env;
 use tower::ServiceBuilder;
@@ -23,7 +24,13 @@ use utoipa_swagger_ui::SwaggerUi;
     api::v2::get_cart_items,
     api::v2::add_to_cart,
     api::v2::submit_order,
-	api::v2::remove_from_cart
+    api::v2::remove_from_cart,
+    admin::update_flavor,
+    admin::create_flavor,
+    admin::delete_flavor,
+    admin::update_size,
+    admin::delete_size,
+    admin::create_size,
 ))]
 struct ApiDoc;
 
@@ -82,26 +89,17 @@ fn cors() -> CorsLayer {
         .allow_credentials(true)
 }
 
+#[allow(deprecated)]
 async fn server() -> crate::Result<()> {
     let port = env::var("PORT").ok().unwrap_or(String::from("3000"));
-
     let state = AppState::new().await?;
-
     let ui = SwaggerUi::new("/docs").url("/api-docs/open-api.json", ApiDoc::openapi());
 
     let middleware = ServiceBuilder::new()
         .layer(cors())
         .layer(axum::middleware::from_fn(logging_middleware));
 
-    let admin_api = Router::new()
-        .route("/orders", get(get_orders))
-        .route("/order/{id}", get(fetch_order))
-        .route("/order/{id}/status/{status}", patch(update_order_status))
-        .route("/cart/{id}/items", get(fetch_cakes))
-        .layer(axum::middleware::from_fn_with_state(
-            state.clone(),
-            auth_middleware,
-        ));
+    let admin_api = admin_api(state.clone());
 
     let public_api = Router::new()
         .route("/cakes/flavors", get(get_cake_flavors))
@@ -127,17 +125,15 @@ async fn server() -> crate::Result<()> {
         .route("/api-docs", get(openapi))
         .nest("/api/v1", public_api)
         .nest("/api/v2", public_api_v2)
-        .nest("/api/v1/admin", admin_api)
+        .nest("/api/v1/admin", admin_api.clone())
+        .nest("/api/admin/v1", admin_api)
         .merge(ui)
         .layer(middleware)
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await?;
-
     let socket = listener.local_addr()?;
-
-    log::info!("Starting server on: {socket}");
-
+    tracing::info!("Starting server on: {socket}");
     axum::serve(listener, app).await?;
 
     Ok(())
@@ -150,7 +146,7 @@ async fn main() -> Result<()> {
     if cfg!(debug_assertions) {
         tracing_subscriber::fmt().init();
     } else {
-        tracing_subscriber::fmt().json().init();
+        tracing_subscriber::fmt().json().flatten_event(true).init();
     }
 
     server().await?;

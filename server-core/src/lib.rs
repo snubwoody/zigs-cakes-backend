@@ -1,9 +1,11 @@
+pub mod admin;
 pub mod api;
 mod auth;
 pub mod db;
 mod error;
 pub mod middleware;
 pub mod secrets;
+mod services;
 mod state;
 pub use error::*;
 pub use state::AppState;
@@ -20,7 +22,7 @@ async fn create_test_user(
     let claims = Claims::default();
 
     sqlx::query("INSERT INTO profiles(id) VALUES($1)")
-        .bind(&claims.sub)
+        .bind(claims.sub)
         .execute(pool)
         .await?;
 
@@ -32,7 +34,7 @@ async fn create_test_user(
 
 #[cfg(test)]
 mod tests {
-    use crate::{AppState, create_test_user, secrets::SecretManager};
+    use crate::{AppState, create_test_user};
 
     #[sqlx::test(migrations = "../migrations")]
     fn add_dummy_user(pool: sqlx::PgPool) {

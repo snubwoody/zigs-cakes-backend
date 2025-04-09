@@ -1,9 +1,8 @@
 use crate::AppState;
-use crate::api::HttpExt;
 use axum::{
     Json,
-    extract::{Path, Query, State},
-    http::{HeaderMap, StatusCode},
+    extract::{Path, State},
+    http::StatusCode,
 };
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -38,15 +37,8 @@ pub struct AddToCartPayload {
 pub async fn add_to_cart(
     Path(cart_id): Path<Uuid>,
     State(state): State<AppState>,
-    headers: HeaderMap,
     Json(payload): Json<AddToCartPayload>,
 ) -> crate::Result<StatusCode> {
-    // TODO handle auth
-    let jwt_secret = state.jwt_secret();
-
-    let claims = headers.get_jwt(jwt_secret)?;
-    let user_id = claims.sub;
-
     sqlx::query(
         "INSERT INTO cakes(
 			flavour_id,
@@ -80,6 +72,7 @@ mod tests {
         AppState, api, create_test_user,
         db::{CakeFlavor, CakeSize},
     };
+    use axum::http::HeaderMap;
     use axum::{extract::State, http::HeaderValue};
 
     #[sqlx::test(migrations = "../migrations")]
@@ -126,7 +119,7 @@ mod tests {
             .await
             .unwrap();
 
-        let status = add_to_cart(Path(cart_id), state.clone(), headers, Json(payload))
+        let status = add_to_cart(Path(cart_id), state.clone(), Json(payload))
             .await
             .unwrap();
 
