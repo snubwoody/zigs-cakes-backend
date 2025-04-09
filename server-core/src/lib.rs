@@ -1,12 +1,12 @@
-mod state;
-mod auth;
-mod error;
-mod services;
-pub mod api;
-pub mod db;
 pub mod admin;
+pub mod api;
+mod auth;
+pub mod db;
+mod error;
 pub mod middleware;
 pub mod secrets;
+mod services;
+mod state;
 pub use error::*;
 pub use state::AppState;
 

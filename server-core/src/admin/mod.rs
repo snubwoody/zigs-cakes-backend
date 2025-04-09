@@ -1,38 +1,41 @@
-use crate::{AppState,middleware::auth_middleware};
+use crate::api::v1::orders::*;
+use crate::db::CakeFlavor;
+use crate::{AppState, middleware::auth_middleware};
+use crate::{
+    ErrorResponse,
+    db::CakeSize,
+    services::size::{SizeService, UpdateSizeDesc},
+};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+};
 use axum::{
     Router,
     routing::{delete, get, patch, post},
 };
-use crate::api::v1::orders::*;
-use crate::{db::CakeSize, services::size::{SizeService, UpdateSizeDesc}, 
-ErrorResponse};
-use axum::{
-    extract::{Path, State}, http::StatusCode, Json
-};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
-use crate::db::CakeFlavor;
 
-
-pub fn admin_api(state: AppState) -> Router<AppState>{
-	Router::new()
+pub fn admin_api(state: AppState) -> Router<AppState> {
+    Router::new()
         .route("/orders", get(get_orders))
         .route("/order/{id}", get(fetch_order))
         .route("/order/{id}/status/{status}", patch(update_order_status))
         .route("/cart/{id}/items", get(fetch_cakes))
-		.route("/cakes/flavor/{id}", patch(update_flavor))
-		.route("/cakes/flavor", post(create_flavor))
-		.route("/cakes/flavor", delete(delete_flavor))
-		.route("/cakes/sizes/{id}", patch(update_size))
-		.route("/cakes/sizes/{id}", delete(delete_size))
-		.route("/cakes/sizes", post(create_size))
+        .route("/cakes/flavor/{id}", patch(update_flavor))
+        .route("/cakes/flavor", post(create_flavor))
+        .route("/cakes/flavor", delete(delete_flavor))
+        .route("/cakes/sizes/{id}", patch(update_size))
+        .route("/cakes/sizes/{id}", delete(delete_size))
+        .route("/cakes/sizes", post(create_size))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             auth_middleware,
         ))
 }
-
 
 /// The payload used when creating a size
 #[derive(Serialize, Deserialize, ToSchema)]
@@ -41,7 +44,6 @@ pub struct CreateSizePayload {
     pub layers: i32,
     pub price: Decimal,
 }
-
 
 #[utoipa::path(
 	post,
@@ -55,15 +57,16 @@ pub struct CreateSizePayload {
 pub async fn create_size(
     State(state): State<AppState>,
     Json(payload): Json<CreateSizePayload>,
-) -> crate::Result<(StatusCode,Json<CakeSize>)> {
-	let sizes = SizeService::new(state.clone());
-	let CreateSizePayload { inches, layers, price } = payload;
-	let size = sizes.create(inches, layers, price).await?;
-	
-	Ok((
-		StatusCode::CREATED,
-		Json(size)
-	))
+) -> crate::Result<(StatusCode, Json<CakeSize>)> {
+    let sizes = SizeService::new(state.clone());
+    let CreateSizePayload {
+        inches,
+        layers,
+        price,
+    } = payload;
+    let size = sizes.create(inches, layers, price).await?;
+
+    Ok((StatusCode::CREATED, Json(size)))
 }
 
 #[utoipa::path(
@@ -80,8 +83,8 @@ pub async fn update_size(
     Path(id): Path<i32>,
     Json(desc): Json<UpdateSizeDesc>,
 ) -> crate::Result<()> {
-	let sizes = SizeService::new(state.clone());
-	sizes.update(id,desc).await
+    let sizes = SizeService::new(state.clone());
+    sizes.update(id, desc).await
 }
 
 #[utoipa::path(
@@ -93,12 +96,9 @@ pub async fn update_size(
 	)
 )]
 /// Delete a [`CakeSize`]
-pub async fn delete_size(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
-) -> crate::Result<()> {
-	let sizes = SizeService::new(state.clone());
-	sizes.delete(id).await
+pub async fn delete_size(State(state): State<AppState>, Path(id): Path<i32>) -> crate::Result<()> {
+    let sizes = SizeService::new(state.clone());
+    sizes.delete(id).await
 }
 
 /// The payload used when creating or updating a flavour
@@ -106,7 +106,6 @@ pub async fn delete_size(
 pub struct FlavorPayload {
     pub name: String,
 }
-
 
 #[utoipa::path(
 	post,
@@ -120,16 +119,14 @@ pub struct FlavorPayload {
 pub async fn create_flavor(
     State(state): State<AppState>,
     Json(payload): Json<FlavorPayload>,
-) -> crate::Result<(StatusCode,Json<CakeFlavor>)> {
-	let flavor = sqlx::query_as::<_,CakeFlavor>("INSERT INTO cake_flavors(name) VALUES($1) RETURNING *")
-		.bind(payload.name)
-		.fetch_one(state.pool())
-		.await?;
+) -> crate::Result<(StatusCode, Json<CakeFlavor>)> {
+    let flavor =
+        sqlx::query_as::<_, CakeFlavor>("INSERT INTO cake_flavors(name) VALUES($1) RETURNING *")
+            .bind(payload.name)
+            .fetch_one(state.pool())
+            .await?;
 
-	Ok((
-		StatusCode::CREATED,
-		Json(flavor)
-	))
+    Ok((StatusCode::CREATED, Json(flavor)))
 }
 
 #[utoipa::path(
@@ -146,12 +143,12 @@ pub async fn update_flavor(
     Path(id): Path<i32>,
     Json(payload): Json<FlavorPayload>,
 ) -> crate::Result<()> {
-	sqlx::query("UPDATE cake_flavors SET name = $1 WHERE id = $2")
-		.bind(payload.name)
-		.bind(id)
-		.execute(state.pool())
-		.await?;
-	Ok(())
+    sqlx::query("UPDATE cake_flavors SET name = $1 WHERE id = $2")
+        .bind(payload.name)
+        .bind(id)
+        .execute(state.pool())
+        .await?;
+    Ok(())
 }
 
 #[utoipa::path(
@@ -167,9 +164,9 @@ pub async fn delete_flavor(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> crate::Result<()> {
-	sqlx::query("DELETE FROM cake_flavors WHERE id = $1")
-		.bind(id)
-		.execute(state.pool())
-		.await?;
-	Ok(())
+    sqlx::query("DELETE FROM cake_flavors WHERE id = $1")
+        .bind(id)
+        .execute(state.pool())
+        .await?;
+    Ok(())
 }
