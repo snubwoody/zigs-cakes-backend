@@ -5,7 +5,7 @@ env:
   CR_REGION: europe-west2
   GCP_PROJECT_ID: cakes-and-bakes-435600
   SERVICE_ACCOUNT: container-ci@cakes-and-bakes-435600.iam.gserviceaccount.com
-  WIP: https://iam.googleapis.com/projects/160650575490/locations/global/workloadIdentityPools/github/providers/zigs-cakes-backend
+  WIP: projects/160650575490/locations/global/workloadIdentityPools/github/providers/zigs-cakes-backend
 
 on:
   push:
