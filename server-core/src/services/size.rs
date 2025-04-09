@@ -1,7 +1,6 @@
-use crate::{db::CakeSize, AppState, ErrorResponse};
-use axum::{
-    extract::{Path, State}, http::StatusCode, Json
-};
+//! Contains all the services that deal with the `cake_sizes` table in the 
+//! database
+use crate::{db::CakeSize, AppState, Error};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -29,6 +28,7 @@ impl SizeService{
 		Self { state }
 	}
 
+	/// Get a [`CakeSize`]
 	pub async fn get(&self,id:i32) -> Result<Option<CakeSize>>{
 		let pool = self.state.pool();
 		let size:Option<CakeSize> = sqlx::query_as(
@@ -71,9 +71,41 @@ impl SizeService{
 		&self,
 		id:i32,
 		desc:UpdateSizeDesc
-	){
-		
+	) -> Result<()>{
+		let mut size = self.get(id)
+			.await?
+			.ok_or(Error::NotFound(format!("cake_size at {id}")))?;
 
+		if let Some(inches) = desc.inches{
+			size.inches = inches
+		}
+
+		if let Some(layers) = desc.layers{
+			size.layers = layers
+		}
+
+		if let Some(price) = desc.price{
+			size.price = price
+		}
+
+		let CakeSize { inches, price, layers,.. } = size;
+		let pool = self.state.pool();
+
+		sqlx::query(
+			"
+			UPDATE cake_sizes 
+			SET inches = $1, layers = $2, price = $3 
+			WHERE id = $4
+			"
+		)
+		.bind(inches)
+		.bind(layers)
+		.bind(price)
+		.bind(id)
+		.execute(pool)
+		.await?;
+
+		Ok(())
 	}
 
 	/// Delete a [`CakeSize`]
@@ -103,6 +135,26 @@ mod tests{
 		let size = sizes.get(new_size.id).await?.unwrap();
 
 		assert_eq!(new_size,size);
+		Ok(())
+	}
+
+	#[sqlx::test(migrations="../migrations")]
+	async fn update_cake_size(pool: sqlx::PgPool) -> Result<()>{
+		let state = AppState::with_pool(pool).await?;
+		let sizes = SizeService::new(state);
+		let new_size = sizes.create(10, 10, Decimal::new(350, 2)).await?;
+		let size = sizes.get(new_size.id).await?.unwrap();
+
+		let desc = UpdateSizeDesc{
+			inches: Some(25),
+			..Default::default()
+		};
+		sizes.update(size.id,desc).await?;
+		let size = sizes.get(new_size.id).await?.unwrap();
+
+		assert_eq!(size.inches,25);
+		assert_eq!(size.layers,10);
+
 		Ok(())
 	}
 }
