@@ -36,13 +36,11 @@ jobs:
           version: '>= 363.0.0' # Minimum supported version for Workload Identity Federation
 
       - name: Build docker image
-        run: |
-          cd backend
-          docker compose build
+        run: docker compose build
       
       - name: Extract version
         run: |
-          cd backend/server
+          cd server
           cargo install cargo-get
           echo "VERSION=$(cargo-get package.version)" >> "$GITHUB_ENV"
       
