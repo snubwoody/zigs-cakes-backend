@@ -24,6 +24,9 @@ pub fn admin_api(state: AppState) -> Router<AppState>{
 		.route("/cakes/flavor/{id}", patch(update_flavor))
 		.route("/cakes/flavor", post(create_flavor))
 		.route("/cakes/flavor", delete(delete_flavor))
+		.route("/cakes/sizes/{id}", patch(update_size))
+		.route("/cakes/sizes/{id}", delete(delete_size))
+		.route("/cakes/sizes", post(create_size))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             auth_middleware,
