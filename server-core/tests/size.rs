@@ -5,9 +5,7 @@ use axum::{
 use rust_decimal::Decimal;
 use server_core::{
     AppState, Error,
-    admin::{
-        CreateSizePayload, FlavorPayload, create_size, delete_size, update_flavor,
-    },
+    admin::{CreateSizePayload, FlavorPayload, create_size, delete_size, update_flavor},
     db::{CakeFlavor, CakeSize},
 };
 

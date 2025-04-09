@@ -67,12 +67,12 @@ pub async fn add_to_cart(
 
 #[cfg(test)]
 mod tests {
-	use axum::http::HeaderMap;
     use super::*;
     use crate::{
         AppState, api, create_test_user,
         db::{CakeFlavor, CakeSize},
     };
+    use axum::http::HeaderMap;
     use axum::{extract::State, http::HeaderValue};
 
     #[sqlx::test(migrations = "../migrations")]
@@ -119,7 +119,7 @@ mod tests {
             .await
             .unwrap();
 
-        let status = add_to_cart(Path(cart_id), state.clone(),Json(payload))
+        let status = add_to_cart(Path(cart_id), state.clone(), Json(payload))
             .await
             .unwrap();
 
