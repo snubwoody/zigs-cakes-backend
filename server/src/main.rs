@@ -26,6 +26,11 @@ use utoipa_swagger_ui::SwaggerUi;
     api::v2::submit_order,
     api::v2::remove_from_cart,
 	admin::update_flavor,
+	admin::create_flavor,
+	admin::delete_flavor,
+	admin::update_size,
+	admin::delete_size,
+	admin::create_size,
 ))]
 struct ApiDoc;
 
@@ -120,14 +125,15 @@ async fn server() -> crate::Result<()> {
         .route("/api-docs", get(openapi))
         .nest("/api/v1", public_api)
         .nest("/api/v2", public_api_v2)
-        .nest("/api/v1/admin", admin_api)
+        .nest("/api/v1/admin", admin_api.clone())
+        .nest("/api/admin/v1", admin_api)
         .merge(ui)
         .layer(middleware)
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await?;
     let socket = listener.local_addr()?;
-    log::info!("Starting server on: {socket}");
+    tracing::info!("Starting server on: {socket}");
     axum::serve(listener, app).await?;
 
     Ok(())
@@ -140,7 +146,10 @@ async fn main() -> Result<()> {
     if cfg!(debug_assertions) {
         tracing_subscriber::fmt().init();
     } else {
-        tracing_subscriber::fmt().json().init();
+        tracing_subscriber::fmt()
+			.json()
+			.flatten_event(true)
+			.init();
     }
 
     server().await?;

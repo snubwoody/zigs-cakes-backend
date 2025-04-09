@@ -34,6 +34,7 @@ pub async fn logging_middleware(request: Request, next: Next) -> Response {
         );
     } else if status.is_server_error() {
         tracing::error!(
+			severity="ERROR",
             uri = format!("{} {}", method, uri),
             status = status.to_string(),
             latency = format!("{}ms", latency),
@@ -42,6 +43,7 @@ pub async fn logging_middleware(request: Request, next: Next) -> Response {
         );
     } else {
         tracing::info!(
+			severity="INFO",
             uri = format!("{} {}", method, uri),
             status = status.to_string(),
             latency = format!("{}ms", latency),
