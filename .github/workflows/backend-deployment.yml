@@ -1,4 +1,4 @@
-name: Backend deployment
+name: Deployment
 env: 
   SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
   AR_REGION: africa-south1
@@ -6,7 +6,7 @@ env:
 
 on:
   push:
-    tags: ["backend-v*"]
+    tags: ["release-v*"]
 
 jobs:
   build:
