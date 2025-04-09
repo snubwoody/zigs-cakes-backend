@@ -23,6 +23,8 @@ pub enum Error {
 
     /* Third party wrappers */
     #[error(transparent)]
+    ReqwestError(#[from] reqwest::Error),
+    #[error(transparent)]
     IoError(#[from] io::Error),
     #[error(transparent)]
     SqlxError(sqlx::Error),

@@ -1,7 +1,7 @@
 [workspace]
 resolver = '3'
 
-members = ['server-core','server']
+members = ['server-core','server', "e2e"]
 
 [workspace.dependencies]
 tokio-postgres = "0.7.13"
@@ -30,6 +30,7 @@ criterion = { version = "0.5", features = ["html_reports","async_tokio"] }
 utoipa = { version = "5.3.1", features = ["axum_extras", "uuid","chrono","macros","decimal"] } # Adjust for your framework
 utoipa-swagger-ui = { version = "9.0.0", features = ["axum","reqwest","debug-embed"] }
 zip = "=2.3.0" 
+reqwest = "0.12.15"
 
 [workspace.dependencies.sqlx]
 version = "0.8.3"

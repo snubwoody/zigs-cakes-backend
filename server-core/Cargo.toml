@@ -8,6 +8,7 @@ name = "cake_flavor"
 harness = false
 
 [dependencies]
+reqwest = {workspace = true}
 utoipa.workspace = true
 utoipa-swagger-ui.workspace = true
 tokio-postgres.workspace = true

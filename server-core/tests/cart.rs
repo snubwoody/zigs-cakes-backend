@@ -5,7 +5,7 @@ use server_core::{AppState, api::v1::cart::*};
 use uuid::Uuid;
 
 #[sqlx::test(migrations = "../migrations")]
-fn fetching_from_the_right_cart(pool: sqlx::PgPool) {
+async fn fetching_from_the_right_cart(pool: sqlx::PgPool) {
     let app_state = AppState::with_pool(pool).await.unwrap();
     let id = Uuid::new_v4();
     let cookies = CookieJar::new().add(Cookie::new("cart", id.to_string()));
