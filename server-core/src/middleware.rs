@@ -7,7 +7,6 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use serde_json::json;
 use std::time::Instant;
 
 /// Logs useful information about each request.
@@ -25,11 +24,11 @@ pub async fn logging_middleware(request: Request, next: Next) -> Response {
     let status = response.status();
     let latency = now.elapsed().as_millis();
 
-    let req_info = json!({
-        "requestMethod":method.as_str(),
-        "status":status.as_u16(),
-        "userAgent": user_agent,
-    });
+    // let req_info = json!({
+    //     "requestMethod":method.as_str(),
+    //     "status":status.as_u16(),
+    //     "userAgent": user_agent,
+    // });
 
     if status.is_client_error() {
         tracing::warn!(

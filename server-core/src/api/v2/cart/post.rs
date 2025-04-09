@@ -1,9 +1,8 @@
 use crate::AppState;
-use crate::api::HttpExt;
 use axum::{
     Json,
     extract::{Path, State},
-    http::{HeaderMap, StatusCode},
+    http::StatusCode,
 };
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -68,6 +67,7 @@ pub async fn add_to_cart(
 
 #[cfg(test)]
 mod tests {
+	use axum::http::HeaderMap;
     use super::*;
     use crate::{
         AppState, api, create_test_user,

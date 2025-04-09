@@ -89,6 +89,7 @@ fn cors() -> CorsLayer {
         .allow_credentials(true)
 }
 
+#[allow(deprecated)]
 async fn server() -> crate::Result<()> {
     let port = env::var("PORT").ok().unwrap_or(String::from("3000"));
     let state = AppState::new().await?;
