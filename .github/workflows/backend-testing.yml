@@ -85,9 +85,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build docker image
-        run: |
-          cd backend
-          docker compose build
+        run: docker compose build
       
       
       
