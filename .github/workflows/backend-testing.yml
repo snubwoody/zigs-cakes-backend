@@ -30,7 +30,7 @@ jobs:
       name: Install sqlx
       run: cargo install sqlx-cli --no-default-features --features rustls,postgres,completions
 
-    - name: 📖 Setup local database
+    - name: Setup local database
       run: |
         docker compose up db -d
         until pg_isready -h localhost -p 5432 -U postgres; do
@@ -43,10 +43,10 @@ jobs:
         sqlx database create
         sqlx migrate run
 
-    - name: ✒️ Format
+    - name: Format
       run: cargo fmt --all --check
   
-    - name: 👀 Clippy
+    - name: Clippy
       run: cargo clippy -- -D warnings
   
   test-and-build:
