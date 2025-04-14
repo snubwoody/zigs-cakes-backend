@@ -48,7 +48,9 @@ jobs:
         run: |
           gcloud auth configure-docker ${{ env.AR_REGION }}-docker.pkg.dev
           docker tag server ${{ env.AR_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/backend-server/server:$VERSION
+          docker tag server ${{ env.AR_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/backend-server/server:latest
           docker push ${{ env.AR_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/backend-server/server:$VERSION
+          docker push ${{ env.AR_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/backend-server/server:latest
 
       - name: Deploy to cloud run
         run: gcloud run deploy zigs-cakes-backend --image ${{ env.AR_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/backend-server/server:$VERSION --region ${{ env.CR_REGION }}
