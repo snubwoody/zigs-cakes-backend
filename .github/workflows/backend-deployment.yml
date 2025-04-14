@@ -34,6 +34,24 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           version: '>= 363.0.0' # Minimum supported version for Workload Identity Federation
+    
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        id: cache-deps
+        with: 
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            ~/.cargo/.git
+            target/
+          key: ${{ runner.os }}-cargo-deployment-deps-${{ hashFiles('**/Cargo.lock') }}
+
+      - if: ${{steps.cache-deps.outputs.cache-hit != 'true'}}
+        name: Install sqlx
+        run: cargo install sqlx-cli --no-default-features --features rustls,postgres,completions
+
+      - name: Run sqlx prepare
+        run: sqlx prepare --workspace
 
       - name: Build docker image
         run: docker compose build
