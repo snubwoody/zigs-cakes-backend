@@ -51,7 +51,7 @@ jobs:
         run: cargo install sqlx-cli --no-default-features --features rustls,postgres,completions
 
       - name: Run sqlx prepare
-        run: sqlx prepare --workspace
+        run: cargo sqlx prepare --workspace
 
       - name: Build docker image
         run: docker compose build
