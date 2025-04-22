@@ -1,12 +1,17 @@
-use std::{fs, io::{self, Write}};
-
-use clap::{command, Arg, Command, Parser, Subcommand};
 mod error;
+use std::{fs, io::{self, Write}, time::Duration};
+use clap::{command, Arg, Command, Parser, Subcommand};
+use sqlx::{migrate::Migrator, PgPool};
 pub use {error::Result,error::CliError};
+use server_core::db::{Role,Profile};
+
+static MIGRATOR:Migrator = sqlx::migrate!("../migrations");
 
 #[derive(Parser)]
 #[command(version, about = "Internal tooling")]
 struct Cli{
+	#[arg(short,long)]
+	database_url: Option<String>,
 	#[command(subcommand)]
 	command: Commands
 }
@@ -23,35 +28,22 @@ enum Commands{
 #[derive(Subcommand,Debug)]
 enum DbCommands{
 	/// Setup and edit the database
-	Setup{
+	Setup,
+	/// Create a test user in the database and print their
+	/// id to stdout
+	CreateUser{
+		/// Give the user admin access
 		#[arg(short,long)]
-		database_url: Option<String>,
-		#[arg(short,long)]
-		source: Option<String>,
-	},
-	/// Create data in the database
-	Create
+		admin:bool
+	}
 }
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
 	let _ = dotenv::dotenv();
 	let cli = Cli::parse();
-	match &cli.command {
-		Commands::Db { command } => {
-			match command {
-				DbCommands::Setup { database_url,source } => 
-					setup_database(database_url,source)?,
-				DbCommands::Create => {
 
-				}
-			}
-		}
-	}
-	Ok(())
-}
-
-fn setup_database(database_url: &Option<String>,source: &Option<String>) -> Result<()>{
-	let database_url = match database_url {
+	let database_url = match cli.database_url {
 		Some(url) => url.clone(),
 		None => {
 			let url = std::env::var("DATABASE_URL")
@@ -59,54 +51,44 @@ fn setup_database(database_url: &Option<String>,source: &Option<String>) -> Resu
 			url
 		}
 	};
-
-	let migrations_dir = match source {
-		Some(dir) => dir,
-		None => "migrations"
-	};
 	
-	// Check if the migrations folder exists
-	fs::read_dir(migrations_dir)?;
+	let pool: PgPool = sqlx::pool::PoolOptions::new()
+		.max_connections(10)
+		.acquire_timeout(Duration::from_secs(20))
+		.connect(&database_url)
+		.await?;
 
-	let output = std::process::Command::new("sqlx")
-		.arg("--version")
-		.output()?;
-
-	if !output.status.success(){
-		eprintln!("sqlx-cli not installed")
+	match &cli.command {
+		Commands::Db { command } => {
+			match command {
+				DbCommands::Setup => MIGRATOR.run(&pool).await?,
+				DbCommands::CreateUser{..} => create_user(&pool).await?
+			}
+		}
 	}
+	Ok(())
+}
 
-	let output = std::process::Command::new("sqlx")
-		.args([
-			"database",
-			"create",
-			"--database-url",
-			&database_url,
-		])
-		.output()?;
-
-	io::stdout().write_all(&output.stdout)?;
-	if !output.status.success(){
-		io::stderr().write_all(&output.stderr)?;
-		return Err(CliError::execution_failed("Failed to create database"))
-	}
+async fn create_user(pool: &PgPool) -> Result<()>{
+	let role = sqlx::query_as!(Role,"SELECT * FROM roles WHERE label='admin'")
+		.fetch_one(pool)
+		.await?;
 	
-	let output = std::process::Command::new("sqlx")
-		.args([
-			"migrate",
-			"run",
-			"--database-url",
-			&database_url,
-			"--source",
-			migrations_dir
-		])
-		.output()?;
-	
-	io::stdout().write_all(&output.stdout)?;
-	if !output.status.success(){
-		io::stderr().write_all(&output.stderr)?;
-		return Err(CliError::execution_failed("Failed to run migrations"))
-	}
+	let user = sqlx::query_as!(
+		Profile,
+		"INSERT INTO profiles(id) VALUES(uuid_generate_v4()) RETURNING *"
+	)
+	.fetch_one(pool)
+	.await?;
 
+	sqlx::query!(
+		"INSERT INTO user_roles(uid,role) VALUES($1,$2)",
+		&user.id,
+		&role.id
+	)
+	.execute(pool)
+	.await?;
+
+	println!("{}",user.id);
 	Ok(())
 }

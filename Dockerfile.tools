@@ -1,0 +1,15 @@
+FROM rust:1.85-bullseye AS builder
+WORKDIR /usr/src/app
+COPY . .
+
+ARG SUPABASE_JWT_SECRET
+ENV SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+ENV SQLX_OFFLINE=true
+RUN cargo build -p tools --release
+
+FROM debian:bullseye-slim AS runner
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app/target/release/tools /usr/src/app/tools
+COPY --from=builder /usr/src/app/migrations /usr/src/app/migrations
+ENV MIGRATIONS_PATH=/usr/src/app/migrations
+ENTRYPOINT [ "/usr/src/app/tools" ]

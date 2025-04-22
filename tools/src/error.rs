@@ -10,7 +10,11 @@ pub enum CliError{
 	ExecutionFailed(String),
 
 	#[error(transparent)]
-	IoError(#[from] io::Error)
+	IoError(#[from] io::Error),
+	#[error(transparent)]
+	SqlxError(#[from] sqlx::Error),
+	#[error(transparent)]
+	MigrateError(#[from] sqlx::migrate::MigrateError)
 }
 
 impl CliError {

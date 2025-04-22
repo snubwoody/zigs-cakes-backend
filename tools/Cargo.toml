@@ -8,3 +8,6 @@ clap = {version = "4.5.37", features = ["derive"]}
 tokio = {workspace = true}
 dotenv = { workspace = true}
 thiserror = {workspace = true}
+sqlx = {workspace = true}
+uuid = {workspace = true}
+server-core = {path = "../server-core"}

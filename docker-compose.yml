@@ -2,7 +2,18 @@ services:
   server:
     image: server
     build: 
-      context: .
+      dockerfile: Dockerfile.server
+      args:
+        SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+    environment:
+      - RUST_LOG=info
+      - PORT=3000
+    ports:
+      - 3000:3000
+  tools:
+    image: tools
+    build: 
+      dockerfile: Dockerfile.tools
       args:
         SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
     environment:

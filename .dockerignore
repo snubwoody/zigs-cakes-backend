@@ -1,5 +1,8 @@
 **/.env
 **/.env.*
 /bin
-/target
-.gitignore
+**/target
+**/.gitignore
+Dockerfile*
+.github/
+.vscode/

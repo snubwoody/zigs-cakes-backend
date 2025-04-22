@@ -10,4 +10,6 @@ RUN cargo build --release
 
 FROM debian:bullseye AS runner
 COPY --from=builder /usr/src/app/target/release/server /usr/bin/server
+COPY --from=builder /usr/src/app/migrations /usr/src/
+ENV MIGRATIONS_PATH=/usr/src/
 ENTRYPOINT [ "/usr/bin/server" ]
