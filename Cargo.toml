@@ -1,7 +1,7 @@
 [workspace]
 resolver = '3'
 
-members = ['server-core','server', "e2e"]
+members = ['server-core','server', "e2e", "tools"]
 
 [workspace.dependencies]
 tokio-postgres = "0.7.13"
