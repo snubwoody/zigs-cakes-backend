@@ -5,10 +5,7 @@ use server_core::{
     db::{Profile, Role},
 };
 use sqlx::{PgPool, migrate::Migrator};
-use std::{
-    str::FromStr,
-    time::Duration,
-};
+use std::{str::FromStr, time::Duration};
 use uuid::Uuid;
 pub use {error::CliError, error::Result};
 
@@ -59,10 +56,7 @@ async fn main() -> Result<()> {
 
     let database_url = match cli.database_url {
         Some(url) => url.clone(),
-        None => {
-            
-            std::env::var("DATABASE_URL").expect("Database url not set")
-        }
+        None => std::env::var("DATABASE_URL").expect("Database url not set"),
     };
 
     let pool: PgPool = sqlx::pool::PoolOptions::new()
@@ -77,8 +71,10 @@ async fn main() -> Result<()> {
             DbCommands::CreateUser { .. } => create_user(&pool).await?,
         },
         Commands::Encode { input, key } => {
-            let mut claims = Claims::default();
-            claims.sub = Uuid::from_str(input)?;
+            let claims = Claims {
+                sub: Uuid::from_str(input)?,
+                ..Default::default()
+            };
 
             let jwt = encode_jwt(claims, key)?;
             println!("{jwt}");
