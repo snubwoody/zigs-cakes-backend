@@ -1,6 +1,6 @@
 pub mod admin;
 pub mod api;
-mod auth;
+pub mod auth;
 pub mod db;
 mod error;
 pub mod middleware;

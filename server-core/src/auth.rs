@@ -1,7 +1,7 @@
 use crate::Error;
 use axum::http::{HeaderMap, StatusCode};
 use chrono::Utc;
-use jsonwebtoken::{Algorithm, DecodingKey};
+use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -115,10 +115,31 @@ pub fn decode_jwt(jwt: &str, jwt_secret: &str) -> Result<Claims, crate::Error> {
     Ok(token.claims)
 }
 
+pub fn encode_jwt(claims: Claims, jwt_secret: &str) -> Result<String, crate::Error> {
+    let encoding_key = EncodingKey::from_secret(jwt_secret.as_ref());
+
+    let token = jsonwebtoken::encode(&Header::default(), &claims, &encoding_key)?;
+    Ok(token)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use sqlx::PgPool;
+
+	#[test]
+	fn encode_and_decode_jwt() -> Result<(),crate::Error>{
+		let claims = Claims::default();
+		let id = claims.sub.clone();
+
+		let secret = "my-very-private-secret";
+		let jwt = encode_jwt(claims, secret)?;
+
+		let claims = decode_jwt(&jwt, secret)?;
+		assert_eq!(claims.sub,id);
+		
+		Ok(())
+	}
 
     #[sqlx::test(migrations = "../migrations")]
     async fn get_user_roles(pool: PgPool) {
