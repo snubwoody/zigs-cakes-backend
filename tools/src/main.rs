@@ -1,9 +1,10 @@
 mod error;
-use std::{fs, io::{self, Write}, time::Duration};
+use std::{fs, io::{self, Write}, str::FromStr, time::Duration};
 use clap::{command, Arg, Command, Parser, Subcommand};
 use sqlx::{migrate::Migrator, PgPool};
+use uuid::{uuid, Uuid};
 pub use {error::Result,error::CliError};
-use server_core::db::{Role,Profile};
+use server_core::{auth::{encode_jwt, Claims}, db::{Profile, Role}};
 
 static MIGRATOR:Migrator = sqlx::migrate!("../migrations");
 
@@ -22,7 +23,14 @@ enum Commands{
 	Db{
 		#[command(subcommand)]
 		command: DbCommands
-	}
+	},
+	/// Encode a JWT string
+	Encode{
+		#[arg(short,long)]
+		input: String,
+		#[arg(short,long)]
+		key: String,
+	},
 }
 
 #[derive(Subcommand,Debug)]
@@ -62,8 +70,15 @@ async fn main() -> Result<()> {
 		Commands::Db { command } => {
 			match command {
 				DbCommands::Setup => MIGRATOR.run(&pool).await?,
-				DbCommands::CreateUser{..} => create_user(&pool).await?
+				DbCommands::CreateUser{..} => create_user(&pool).await?,
 			}
+		},
+		Commands::Encode { input, key } => {
+			let mut claims = Claims::default();
+			claims.sub = Uuid::from_str(input)?;
+
+			let jwt = encode_jwt(claims, &key)?;
+			println!("{jwt}");
 		}
 	}
 	Ok(())

@@ -12,7 +12,11 @@ pub enum CliError{
 	#[error(transparent)]
 	IoError(#[from] io::Error),
 	#[error(transparent)]
+	CoreError(#[from] server_core::Error),
+	#[error(transparent)]
 	SqlxError(#[from] sqlx::Error),
+	#[error(transparent)]
+	UuidError(#[from] uuid::Error),
 	#[error(transparent)]
 	MigrateError(#[from] sqlx::migrate::MigrateError)
 }
