@@ -127,19 +127,19 @@ mod tests {
     use super::*;
     use sqlx::PgPool;
 
-	#[test]
-	fn encode_and_decode_jwt() -> Result<(),crate::Error>{
-		let claims = Claims::default();
-		let id = claims.sub.clone();
+    #[test]
+    fn encode_and_decode_jwt() -> Result<(), crate::Error> {
+        let claims = Claims::default();
+        let id = claims.sub.clone();
 
-		let secret = "my-very-private-secret";
-		let jwt = encode_jwt(claims, secret)?;
+        let secret = "my-very-private-secret";
+        let jwt = encode_jwt(claims, secret)?;
 
-		let claims = decode_jwt(&jwt, secret)?;
-		assert_eq!(claims.sub,id);
-		
-		Ok(())
-	}
+        let claims = decode_jwt(&jwt, secret)?;
+        assert_eq!(claims.sub, id);
+
+        Ok(())
+    }
 
     #[sqlx::test(migrations = "../migrations")]
     async fn get_user_roles(pool: PgPool) {
