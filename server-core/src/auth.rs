@@ -130,7 +130,7 @@ mod tests {
     #[test]
     fn encode_and_decode_jwt() -> Result<(), crate::Error> {
         let claims = Claims::default();
-        let id = claims.sub.clone();
+        let id = claims.sub;
 
         let secret = "my-very-private-secret";
         let jwt = encode_jwt(claims, secret)?;

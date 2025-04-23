@@ -1,17 +1,15 @@
 mod error;
-use clap::{Arg, Command, Parser, Subcommand, command};
+use clap::{Parser, Subcommand, command};
 use server_core::{
     auth::{Claims, encode_jwt},
     db::{Profile, Role},
 };
 use sqlx::{PgPool, migrate::Migrator};
 use std::{
-    fs,
-    io::{self, Write},
     str::FromStr,
     time::Duration,
 };
-use uuid::{Uuid, uuid};
+use uuid::Uuid;
 pub use {error::CliError, error::Result};
 
 static MIGRATOR: Migrator = sqlx::migrate!("../migrations");
@@ -62,8 +60,8 @@ async fn main() -> Result<()> {
     let database_url = match cli.database_url {
         Some(url) => url.clone(),
         None => {
-            let url = std::env::var("DATABASE_URL").expect("Database url not set");
-            url
+            
+            std::env::var("DATABASE_URL").expect("Database url not set")
         }
     };
 
@@ -82,7 +80,7 @@ async fn main() -> Result<()> {
             let mut claims = Claims::default();
             claims.sub = Uuid::from_str(input)?;
 
-            let jwt = encode_jwt(claims, &key)?;
+            let jwt = encode_jwt(claims, key)?;
             println!("{jwt}");
         }
     }
